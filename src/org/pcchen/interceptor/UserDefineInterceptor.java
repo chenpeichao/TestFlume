@@ -57,7 +57,15 @@ public class UserDefineInterceptor implements Interceptor{
 		}
 		this.index_separator = i;
 	}
-	
+	/*
+	 * 
+	 * \t 制表符 ('\u0009') \n 新行（换行）符 (' ') \r 回车符 (' ') \f 换页符 ('\u000C') \a 报警
+	 * (bell) 符 ('\u0007') \e 转义符 ('\u001B') \cx  空格(\u0020)对应于 x 的控制符
+	 * 
+	 * @param str
+	 * @return
+	 * @data:2015-6-30
+	 */
 	private String UnicodeToString(String flag) {
 		Pattern pattern = Pattern.compile("(\\\\u(\\p{XDigit}{4}))");
 		Matcher matcher = pattern.matcher(flag);
@@ -79,7 +87,6 @@ public class UserDefineInterceptor implements Interceptor{
 		if(event == null) {
 			return null;
 		}
-		
 		try {
 			String newLine = "";
 			
@@ -91,7 +98,7 @@ public class UserDefineInterceptor implements Interceptor{
 			for(int i = 0; i < index_splits.length; i++) {
 				int index = Integer.parseInt(index_splits[i]);
 				//对加密字段进行加密
-				if(!"".equals(encrypted_field_index) && encrypted_field_index.equals(index_splits[index])) {
+				if(!"".equals(encrypted_field_index) && encrypted_field_index.equals(index_splits[i])) {
 					newLine += StringUtils.GetMD5Code(fields_splits[index]);
 				} else {
 					newLine += fields_splits[index];
@@ -103,7 +110,8 @@ public class UserDefineInterceptor implements Interceptor{
 			}
 			event.setBody(newLine.getBytes(Charsets.UTF_8));
 			return event;
-		} catch (NumberFormatException e) {
+		//此处注意catch的异常
+		} catch (Exception e) {
 			return event; 
 		}
 	}
@@ -143,23 +151,58 @@ public class UserDefineInterceptor implements Interceptor{
 		private String encrypted_field_index;
 		@Override
 		public void configure(Context context) {
-			fields_separator = context.getString(fields_separator, Constants.DEFAULT_FIELD_SEPARATOR);
-			indexs = context.getString(indexs, Constants.DEFAULT_FIELD_SEPARATOR);
-			index_separator = context.getString(index_separator, Constants.DEFAULT_FIELD_SEPARATOR);
-			encrypted_field_index = context.getString(encrypted_field_index, Constants.DEFAULT_FIELD_SEPARATOR);
+			//下面四行是错误的
+			fields_separator = context.getString(Constants.FIELD_SEPARATOR, Constants.DEFAULT_FIELD_SEPARATOR);
+			indexs = context.getString(Constants.INDEXS, Constants.DEFAULT_INDEXS);
+			index_separator = context.getString(Constants.INDEXS_SEPARATOR, Constants.DEFAULT_INDEXS_SEPARATOR);
+			encrypted_field_index = context.getString(Constants.ENCRYPTED_FIELD_INDEX, Constants.DEFAULT_ENCRYPTED_FIELD_INDEX);
+			
+//			fields_separator = "\\u0009";
+//			indexs = "0,1,3,5,6";
+//			index_separator = "\\u002c";
+//			encrypted_field_index = "0";
+//			
+//			fields_separator = context.getString(Constants.FIELD_SEPARATOR, Constants.DEFAULT_FIELD_SEPARATOR);
+//			indexs = context.getString(Constants.INDEXS, Constants.DEFAULT_INDEXS);
+//			index_separator = context.getString(Constants.INDEXS_SEPARATOR, Constants.DEFAULT_INDEXS_SEPARATOR);
+//			encrypted_field_index= context.getString(Constants.ENCRYPTED_FIELD_INDEX, Constants.DEFAULT_ENCRYPTED_FIELD_INDEX);
 		}
 		@Override
 		public Interceptor build() {
 			return new UserDefineInterceptor(fields_separator, indexs, index_separator, encrypted_field_index);
 		}
 	}
-	
 	public static class Constants {
+		/** The Constant FIELD_SEPARATOR. */
+		public static final String FIELD_SEPARATOR = "fields_separator";
+
 		/** The Constant DEFAULT_FIELD_SEPARATOR. */
 		public static final String DEFAULT_FIELD_SEPARATOR =" ";
-	}
-	
-	
+		
+		/** The Constant INDEXS. */
+		public static final String INDEXS = "indexs";
+
+		/** The Constant DEFAULT_INDEXS. */
+		public static final String DEFAULT_INDEXS = "0";
+
+		/** The Constant INDEXS_SEPARATOR. */
+		public static final String INDEXS_SEPARATOR = "indexs_separator";
+
+		/** The Constant DEFAULT_INDEXS_SEPARATOR. */
+		public static final String DEFAULT_INDEXS_SEPARATOR = ",";
+		
+		/** The Constant ENCRYPTED_FIELD_INDEX. */
+		public static final String ENCRYPTED_FIELD_INDEX = "encrypted_field_index";
+
+		/** The Constant DEFAUL_TENCRYPTED_FIELD_INDEX. */
+		public static final String DEFAULT_ENCRYPTED_FIELD_INDEX = "";
+		
+		/** The Constant PROCESSTIME. */
+		public static final String PROCESSTIME = "processTime";
+		/** The Constant PROCESSTIME. */
+		public static final String DEFAULT_PROCESSTIME = "a";
+		
+	}	
 	/**
 	 * 字符串md5加密
 	 */
